@@ -1,0 +1,55 @@
+web:
+  restart: always
+  build: ./web
+  expose:
+    - "8000"
+  links:
+    - postgres:postgres
+    - redis:redis
+    - mysql:mysql
+  volumes:
+    - /usr/src/app
+    - /usr/src/app/static
+  env_file: .env
+  environment:
+    DEBUG: 'true'
+  command: /usr/local/bin/gunicorn apps.wsgi:application --settings=settings.dev -w 2 -b :8000
+
+nginx:
+  restart: always
+  build: ./nginx/
+  ports:
+    - "80:80"
+  volumes:
+    - /www/static
+  volumes_from:
+    - web
+  links:
+    - web:web
+
+postgres:
+  restart: always
+  image: postgres:latest
+  ports:
+    - "5432:5432"
+  volumes:
+    - pgdata:/var/lib/postgresql/data/
+
+redis:
+  restart: always
+  image: redis:latest
+  ports:
+    - "6379:6379"
+  volumes:
+    - redisdata:/data
+
+mysql:
+  restart: always
+  image: mysql:latest
+  ports:
+    - "3306:3306"
+  environment:
+    MYSQL_ROOT_PASSWORD: 123456
+    MYSQL_USER: dev
+    MYSQL_PASSWORD: 123456
+    MYSQL_DATABASE: myapp
