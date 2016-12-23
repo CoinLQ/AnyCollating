@@ -1,3 +1,17 @@
+Vue.filter('truncate', function(value) {
+    var length = 50;
+    if (typeof(value) != 'string') {
+        return value;
+    }
+    if(value.length <= length) {
+        return value;
+    }
+    else {
+        return value.substring(0, length) + '...';
+    }
+});
+
+
 var CommonListPageVue = Vue.extend({
     el: function(){
         return '#commonDataTableRow';

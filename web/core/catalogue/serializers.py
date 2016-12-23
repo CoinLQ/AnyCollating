@@ -3,6 +3,8 @@ from rest_framework import serializers
 from .models import Sutra, Tripitaka, VariantTripitaka, Volume, LQSutra, Reel, Page
 
 class SutraSerializer(serializers.ModelSerializer):
+    tripitaka = serializers.StringRelatedField(many=False)
+    normal_sutra = serializers.StringRelatedField(many=False)
     class Meta:
         model = Sutra
         fields = Sutra.Config.list_display_fields
@@ -35,6 +37,7 @@ class LQSutraSerializer(serializers.ModelSerializer):
         read_only_fields = ('code')
 
 class ReelSerializer(serializers.ModelSerializer):
+    sutra = serializers.StringRelatedField(many=False)
     class Meta:
         model = Reel
         fields = Reel.Config.list_display_fields

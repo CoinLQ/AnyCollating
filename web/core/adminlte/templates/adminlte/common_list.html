@@ -114,7 +114,7 @@
                                             </td>
                                         {% else %}
                                             <td>
-                                              {!! item.{{ field }} !!}
+                                              {!! item.{{ field }} | truncate !!}
                                             </td>
                                         {% endif %}
                                     {% endfor %}
