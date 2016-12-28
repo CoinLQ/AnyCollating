@@ -44,6 +44,8 @@ class ReelSerializer(serializers.ModelSerializer):
         read_only_fields = ('code')
 
 class PageSerializer(serializers.ModelSerializer):
+    reel = serializers.StringRelatedField(many=False)
+    volume = serializers.StringRelatedField(many=False)
     class Meta:
         model = Page
         fields = Page.Config.list_display_fields

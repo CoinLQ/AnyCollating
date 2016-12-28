@@ -1,0 +1,206 @@
+{% extends "app_base.html" %} {% block content_title %} {% if task.task_type == 0 %}
+<h2>校对</h2> {% elif task.task_type == 1 %}
+<h2>校勘</h2> {% endif %} {% endblock %} {% block content %}
+<div id='task' data-id={{task.id}} data-type={{task.task_type}} data-status={{task.status}} data-percent={{task.percent}}></div>
+{% if task.task_type == 0 %} {% include "includes/verify_task.html" %} {% elif task.task_type == 1 %} {% include "includes/collating_task.html" %} {% endif %} {% endblock %} {% block base_foot_script %}
+<script src='/static/plugins/jQuery/autosize.min.js' type="text/javascript"></script>
+<script src='/static/plugins/markdown/markdown.min.js' type="text/javascript"></script>
+<script type="text/javascript">
+function sortKeysBy(obj, comparator) {
+    var keys = _.sortBy(_.keys(obj), function(key) {
+        return comparator ? comparator(obj[key], key) : key;
+    });
+
+    return _.zipObject(keys, _.map(keys, function(key) {
+        return obj[key];
+    }));
+}
+
+$(function() {
+    var url = '/api/task/' + $('#task').data('id') + '/collating'
+    $.ajax({
+        url: url,
+        method: 'get',
+        cache: false,
+        dataType: 'json',
+        data: {},
+        success: function(res) {
+            page_collating.items = res.variants
+            console.log(page_collating.items)
+        },
+        error: function(xhr, status, err) {
+            console.log(err);
+        }
+    });
+    $('textarea').autosize();
+
+    $('#markdown').bind('keyup', function() {
+        isEdited = true;
+        $('#output').html(markdown.toHTML($('#markdown').val()));
+    });
+})
+
+
+var page_collating = new Vue({
+    el: '#page-collating',
+    data: {
+        total: 0,
+        name: '',
+        current: 0,
+        items: [],
+        menu_style: {
+            top: 0,
+            left: 0,
+            display: 'none'
+        }
+    },
+    watch: {
+        items: function() {
+            //code here executes whenever the uploads array changes
+            //and runs AFTER the dom is updated, could use this in
+            //the parent component
+            page_collating.diff(this.items[1].reel.text_content_trad, this.items[2].reel.text_content_trad)
+        }
+    },
+    methods: {
+        diff: function(text1, text2) {
+            //var diff = JsDiff.diffChars($(".text_lines:first").text(),$($(".text_lines")[1]).text()),
+            var diff = JsDiff.diffChars(text1, text2, {
+                ignoreWhitespace: true
+            });
+            var text = "", append_text = "";
+            diff.forEach(function(part) {
+                append_text = part.value.replace(/[\r]*/g, '');
+
+                if (part.added) {
+                    if ( append_text === "")
+                        return;
+                    append_text = (append_text.replace(/[\n\ \　]*/g,'')==='') ?  append_text  : "__" + append_text + "__";
+                } else if (part.removed) {
+                    if ( append_text === "")
+                        return;
+                    append_text = (append_text.replace(/[\n\ \　]*/g,'')==='') ?  append_text  : "*" + append_text + "*";
+                } else {
+                    //append_text = part.value;
+                }
+                text += append_text;
+            });
+            $('textarea#markdown').val(text);
+            $('#output').html(markdown.toHTML(text));
+        },
+        gen_cls: function(item) {
+            var class_name;
+            if (item.is_correct == 1) {
+                cls_name = 'correct-char flip-inx'
+            } else if (item.is_correct == -1) {
+                cls_name = 'error-char flip-inx'
+            } else {
+                cls_name = 'twinkling'
+            }
+            // if (this.items.indexOf(item) == this.selection)
+            //     cls_name = cls_name.replace(/flip-inx/, '')
+            return cls_name;
+        },
+        goto_detail: function() {
+            url = "/characters/" + this.items[this.selection].id;
+            var _open = window.open(url);
+        },
+        showPanel: function(index) {
+            if (this.selection != index) {
+                this.ClickedOutside();
+            }
+            this.selection = index;
+            const item = this.items[index];
+            if (this.items[index].show)
+                return;
+            this.items.$set(index, {
+                show: true,
+                id: item.id,
+                image_url: item.image_url,
+                cls_name: item.cls_name,
+                accuracy: item.accuracy,
+                char: item.char,
+                is_correct: item.is_correct
+            })
+            event.preventDefault()
+            event.stopPropagation()
+        },
+        ClickedOutside: function() {
+            const item = this.items[this.selection];
+            if (!item.show)
+                return;
+            this.items.$set(this.selection, {
+                show: false,
+                id: item.id,
+                image_url: item.image_url,
+                cls_name: item.cls_name,
+                accuracy: item.accuracy,
+                char: item.char,
+                is_correct: item.is_correct
+            })
+        },
+        mark_it: function(item, is_correct) {
+
+            var data = {
+                id: item.id,
+                is_correct: is_correct,
+                char: item.char,
+            };
+            if (item.is_correct != is_correct) {
+                $.post('/characters/set_correct', data);
+                if (is_correct == 1) {
+                    play_bingo();
+                } else {
+                    play_fail();
+                }
+
+                this.items.$set(this.items.indexOf(item), {
+                    show: false,
+                    id: item.id,
+                    image_url: item.image_url,
+                    cls_name: item.cls_name,
+                    accuracy: item.accuracy,
+                    char: item.char,
+                    is_correct: is_correct
+                })
+            }
+        },
+        batchMark: function(is_correct) {
+            this.items = _.map(this.items, function(item) {
+                // is_correct === 0 意义在于批量清除
+                if (item.is_correct === 0 || is_correct === 0) {
+                    item.is_correct = is_correct
+                }
+                return item;
+            });
+        },
+        handleContextmenu: function(item, e) {
+            document.removeEventListener('click', char_list._onContextMenuClick)
+            this.menu_style = {
+                top: e.pageY - window.scrollY + 'px',
+                left: e.pageX + 'px',
+                display: 'block'
+            }
+            this.selection = this.items.indexOf(item)
+            setTimeout(function() {
+                document.addEventListener('click', char_list._onContextMenuClick)
+            }, 200)
+        },
+        _onContextMenuClick: function(e) {
+            e.stopPropagation()
+            if ($('.ctx-menu-container').get(0) !== e.target) {
+                char_list.menu_style = {
+                    display: 'none'
+                }
+            }
+            document.removeEventListener('click', char_list._onContextMenuClick)
+        },
+    }
+});
+</script>
+<script>
+$(function() {
+
+})
+</script>
+{% endblock %}

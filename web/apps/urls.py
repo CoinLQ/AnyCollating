@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from apps.dashboard.views import IndexView
 from core.adminlte.views import ChangePasswordView, \
     ChangePasswordDoneView
+from django.views.static import serve
 from core.adminlte import views
 # 基础 url
 urlpatterns = [
@@ -30,6 +31,7 @@ urlpatterns = [
 # 自定义url必须放在通用url的前面，将通用url覆盖掉
 # Page url
 urlpatterns += [
+    url(r'^apps/tasks/', include('apps.tasks.urls', namespace='tasks')),
 ]
 # API url
 urlpatterns += [
@@ -53,3 +55,9 @@ urlpatterns += [
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL,
                           document_root=settings.MEDIA_ROOT)
+    urlpatterns += [
+        url(r'^page_images/(?P<path>.*)$', serve, {
+            'document_root': '/data/share/dzj_characters/page_images',
+        }),
+
+    ]

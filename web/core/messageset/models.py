@@ -13,6 +13,7 @@ from core.adminlte.constants import ReadStatus, TaskStatus, MailStatus, \
 from core.adminlte.models import BaseModel
 
 
+
 class AbstractMessageContent(BaseModel, UsableStatus):
     title = models.CharField(
         verbose_name=u'标题', max_length=200
@@ -281,6 +282,10 @@ class Task(BaseModel, TaskStatus):
         verbose_name=u'进度', default=0
     )
 
+    pos = models.PositiveIntegerField(
+        verbose_name=u'位置', default=0
+    )
+
     status = models.PositiveSmallIntegerField(
         verbose_name=u'状态',
         choices=TaskStatus.TASK_STATUS,
@@ -300,10 +305,42 @@ class Task(BaseModel, TaskStatus):
     end_time = models.DateTimeField(
         verbose_name=u'结束时间', **DICT_NULL_BLANK_TRUE
     )
-
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, **DICT_NULL_BLANK_TRUE)
+    current_page_code = models.CharField(
+        verbose_name=u'当前页编码', max_length=20, **DICT_NULL_BLANK_TRUE
+    )
+    limit = models.Q(app_label='catalogue', model='reel')
+    content_type = models.ForeignKey(ContentType, limit_choices_to=limit, on_delete=models.CASCADE, **DICT_NULL_BLANK_TRUE)
     object_id = models.PositiveIntegerField(**DICT_NULL_BLANK_TRUE)
     content_object = GenericForeignKey('content_type', 'object_id')
+
+    def next_page_code(self):
+        page_code = int(self.current_page_code.split('P')[-1]) + 1
+        n_page_code = '{0}V{1:04}P{2:04}'.format(self.content_object.sutra.code, self.content_object.start_vol, page_code)
+        return n_page_code
+
+    def goto_next_page(self):
+        model_clz = ContentType.objects.get(app_label='catalogue', model='page').model_class()
+        page_code = self.next_page_code()
+        page = model_clz.objects.filter(code=page_code).first()
+
+        if page is None:
+            vol_num = int(page_code.split("P")[-2].split("V")[-1]) + 1
+            new_page_code = '{0}V{1:04}P{2:04}'.format(self.content_object.sutra.code, vol_num, 1)
+            page = model_clz.objects.filter(code=new_page_code).first()
+
+        return page
+
+    def get_current_page_image(self):
+        model_clz = ContentType.objects.get(app_label='catalogue', model='page').model_class()
+        if self.current_page_code is None:
+            self.current_page_code = '{0}V{1:04}P{2:04}'.format(self.content_object.sutra.code, self.content_object.start_vol, self.content_object.start_page)
+            self.save()
+        page = model_clz.objects.filter(code=self.current_page_code).first()
+        return page.image_url
+
+    def page_counts(self):
+        self.content_object.page_counts()
+
 
     def __unicode__(self):
         return u'%s' % self.name

@@ -9,6 +9,7 @@ from core.adminlte import constants
 from core.adminlte.constants import UsableStatus, DICT_NULL_BLANK_TRUE
 from core.adminlte.models import BaseModel, User
 
+from annoying.fields import AutoOneToOneField
 
 class Organization(MPTTModel, BaseModel, UsableStatus):
     name = models.CharField(
@@ -147,12 +148,15 @@ class AbstractPersonInfo(BaseModel, UsableStatus):
 
 
 class Staff(AbstractPersonInfo):
-    user = models.OneToOneField(
+    user = AutoOneToOneField(
         User, verbose_name=u'登录账号', related_name='staff_of'
     )
     department = models.ForeignKey(
         Department, verbose_name=u'所在小组'
     )
+
+    prefer_task_id = models.IntegerField(
+        u'首选任务ID', default=0)
 
     def __unicode__(self):
         return u'%s/%s' % (self.department, self.real_name)

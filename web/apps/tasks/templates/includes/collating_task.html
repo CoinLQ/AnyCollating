@@ -1,0 +1,38 @@
+
+<div id="page-collating">
+<div id='edit-content'>
+
+
+<div class='row'>
+ <div class='col-md-6 col-xs-12'>
+ <div id="edit" class="mode">
+  <textarea id="markdown" style="overflow: hidden; word-wrap: break-word; resize: none; height: 702px;"></textarea>
+  </div>
+</div>
+ <div class='col-md-6 col-xs-12'>
+ <div class="ui segment">
+ <div id="preview" class="mode">
+          <div id="output" class="markdown-body">
+          </div>
+</div>
+ </div>
+
+</div>
+</div>
+</div>
+<div class='row'>
+<template v-for="item in items">
+    <div class='col-md-6 col-xs-12'>
+        <div id=#[item.reel.code] class="ui segment">
+            <div class='text_lines' style='background-color:white'>
+              #[ item.reel.text_content_trad ]
+            </div>
+        </div>
+    </div>
+</template>
+</div>
+</div>
+
+<style>
+  #result { word-wrap: break-word; }
+</style>

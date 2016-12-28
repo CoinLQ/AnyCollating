@@ -7,9 +7,10 @@ from django.core.urlresolvers import reverse_lazy, reverse
 from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.contenttypes.fields import GenericRelation
 from core.messageset.models import Task
-from core.adminlte.constants import DICT_NULL_BLANK_TRUE
+from core.adminlte.constants import DICT_NULL_BLANK_TRUE, TRUE_FALSE
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
+from django.forms.models import model_to_dict
 
 # Create your models here.
 class Tripitaka(models.Model):
@@ -39,7 +40,7 @@ class VariantTripitaka(models.Model):
     cover = models.ImageField(u'封面信息', upload_to = 'cover', **DICT_NULL_BLANK_TRUE)
     volumes_count = models.SmallIntegerField(u'总册数', default=1)
 
-    is_electronic = models.BooleanField(u'是否为电子版', default=False)
+    is_electronic = models.BooleanField(u'是否为电子版', choices=TRUE_FALSE, default=False)
 
     def __unicode__(self):
         return self.display
@@ -91,7 +92,7 @@ class LQSutra(models.Model):
     name = models.CharField(u'名称', max_length=128, default='')
     translator = models.CharField(u'译者', max_length=32, default='')
     reels_count = models.SmallIntegerField(u'总卷数', default=1)
-    is_opened = models.BooleanField(u'是否开放校对', default=False)
+    is_opened = models.BooleanField(u'是否开放校对', choices=TRUE_FALSE, default=False)
 
     tasks = GenericRelation(Task, related_query_name='tasks')
 
@@ -109,7 +110,7 @@ class LQSutra(models.Model):
 class Sutra(models.Model):
     code = models.CharField(u'编码', max_length=16, default='', unique=True)
     tripitaka = models.ForeignKey(VariantTripitaka, null=False, related_name='sutras', verbose_name = u'经藏')
-    normal_sutra = models.ForeignKey(LQSutra, null=False, verbose_name = u'龙泉经目')
+    normal_sutra = models.ForeignKey(LQSutra, related_name='sutras', null=False, verbose_name = u'龙泉经目')
     display = models.CharField(u'经本名称', max_length=128, default='')
     era = models.CharField(u'年代', max_length=12, default='')
     author = models.CharField(u'作者', max_length=32, default='', **DICT_NULL_BLANK_TRUE)
@@ -124,15 +125,22 @@ class Sutra(models.Model):
     discription = models.CharField(u'描述信息', max_length=512, default='', **DICT_NULL_BLANK_TRUE)
 
     def __unicode__(self):
-         return '%s-%s' % (self.display, self.tripitaka.display)
+        return '%s-%s' % (self.display, self.tripitaka.display)
 
     class Meta:
         verbose_name_plural = verbose_name = u'实体经本'
 
     class Config:
+        app_label = "catalogue"
         list_display_fields = ('normal_sutra', 'code', 'display', 'tripitaka', 'era', 'reels_count',  'start_vol', 'start_page', 'end_vol', 'end_page', 'id')
         list_form_fields = ('normal_sutra', 'display', 'tripitaka', 'era', 'reels_count', 'id',
                             'author', 'translator', 'start_vol', 'start_page', 'end_vol', 'end_page', 'discription')
+
+    @staticmethod
+    def retrieve_reel_by_index(sutra_code, index):
+        reel_code = '{0}-R{1:03}'.format(sutra_code, index)
+        reel = Reel.objects.filter(code=reel_code).first()
+        return model_to_dict(reel)
 
 @receiver(pre_save, sender=Sutra)
 def pre_save_sutra(sender, instance, **kwargs):
@@ -147,7 +155,7 @@ def pre_save_sutra(sender, instance, **kwargs):
 class Reel(models.Model):
     sutra = models.ForeignKey(Sutra, null=False, related_name='reels', verbose_name = u'实体经本')
     reel_num = models.SmallIntegerField(u'卷序号', default=1)
-    code = models.CharField(u'编码', max_length=20, default='', unique=True)
+    code = models.CharField(u'编码', max_length=16, default='', unique=True)
     start_vol = models.SmallIntegerField(u'起始册码', default=0)
     start_page = models.SmallIntegerField(u'起始册码', default=0)
     end_vol = models.SmallIntegerField(u'终止册码', default=0)
@@ -162,8 +170,18 @@ class Reel(models.Model):
         verbose_name_plural = verbose_name = u'卷信息'
 
     class Config:
+        app_label = "catalogue"
         list_display_fields = ('sutra', 'reel_num', 'code', 'text_content_trad',  'start_vol', 'start_page', 'end_vol', 'end_page', 'id')
         list_form_fields = ('sutra', 'reel_num', 'text_content_trad',  'start_vol', 'start_page', 'end_vol', 'end_page', 'id')
+
+    def begin_page_code(self):
+        return '{0}V{1:04}P{2:04}'.format(self.sutra.code, self.start_vol, self.start_page)
+
+    def end_page_code(self):
+        return '{0}V{1:04}P{2:04}'.format(self.sutra.code, self.end_vol, self.end_page)
+
+    def page_counts(self):
+        return Page.objects.filter(code__gte=self.begin_page_code(), code__lte=self.end_page_code).count()
 
 @receiver(pre_save, sender=Reel)
 def pre_save_reel(sender, instance, **kwargs):
@@ -176,7 +194,7 @@ class Page(models.Model):
     reel = models.ForeignKey(Reel, related_name='pages', null=True, verbose_name = u'所属卷')
     volume = models.ForeignKey(Volume, related_name='pages', null=True, verbose_name = u'所属册')
     sutra = models.ForeignKey(Sutra, related_name='pages', null=True, verbose_name = u'实体经本')
-    code = models.CharField(u'编码', max_length=16, default='', unique=True, null=True, blank=True)
+    code = models.CharField(u'编码', max_length=20, default='', unique=True, null=True, blank=True)
     page_num = models.SmallIntegerField(u'序号', default=1)
     text_content_trad = models.TextField(u'页文本（繁体）', default='', **DICT_NULL_BLANK_TRUE)
     text_content_simpl = models.TextField(u'页文本（简体）', default='', **DICT_NULL_BLANK_TRUE)
@@ -185,13 +203,20 @@ class Page(models.Model):
         verbose_name_plural = verbose_name = u'页信息'
 
     class Config:
-        list_display_fields = ('reel', 'volume', 'sutra', 'code', 'text_content_trad',  'page_num', 'id')
+        list_display_fields = ('reel', 'volume', 'code', 'text_content_trad',  'page_num', 'id')
         list_form_fields = ('reel', 'volume', 'sutra', 'text_content_trad',  'page_num', 'id')
+
+    def get_image_path(self):
+        return "/data/share/dzj_characters/page_images/{0}/{1}.jpg".format(self.code[0:4], self.code)
+
+    @property
+    def image_url(self):
+        return "/page_images/{0}/{1}.jpg".format(self.code[0:4], self.code)
 
 @receiver(pre_save, sender=Page)
 def pre_save_page(sender, instance, **kwargs):
     if instance.pk is not None:
         pass
     else:
-        instance.code = '{0}V{1:04}P{2:04}'.format(instance.sutra.code, instance.volume.code, instance.page_num)
+        instance.code = '{0}{1}P{2:04}'.format(instance.sutra.code, instance.volume.code, instance.page_num)
 

@@ -81,10 +81,13 @@ class TaskSerializer(serializers.ModelSerializer):
     def get_status(self, obj):
         return obj.get_status_display()
 
+    def get_task_status(self, obj):
+        return obj.get_task_status_display()
+
     class Meta:
         model = Task
         fields = (
-            'id', 'name', 'percent', 'status',
+            'id', 'name', 'percent', 'status', 'task_type',
             'start_time', 'end_time',
             'creator', 'created_at', 'content_object', 'content_type'
         )

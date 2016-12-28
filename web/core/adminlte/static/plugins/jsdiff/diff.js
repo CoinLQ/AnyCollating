@@ -518,6 +518,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    } else {
 	      if (this.options.ignoreWhitespace) {
 	        line = line.trim();
+	        line = line.replace(/[\　]*/g, '\ ');
 	      }
 	      retLines.push(line);
 	    }
