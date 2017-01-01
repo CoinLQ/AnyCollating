@@ -124,7 +124,7 @@ class AbstractPersonInfo(BaseModel, UsableStatus):
     )
     avatar = models.ImageField(
         upload_to='adminlte/user_avatar',
-        default=None,
+        default='adminlte/user_avatar/xianer02.jpg',
         **DICT_NULL_BLANK_TRUE
     )
     job_status = models.IntegerField(
@@ -152,7 +152,7 @@ class Staff(AbstractPersonInfo):
         User, verbose_name=u'登录账号', related_name='staff_of'
     )
     department = models.ForeignKey(
-        Department, verbose_name=u'所在小组'
+        Department, verbose_name=u'所在小组', default=1
     )
 
     prefer_task_id = models.IntegerField(

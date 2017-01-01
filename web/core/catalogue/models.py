@@ -181,7 +181,7 @@ class Reel(models.Model):
         return '{0}V{1:04}P{2:04}'.format(self.sutra.code, self.end_vol, self.end_page)
 
     def page_counts(self):
-        return Page.objects.filter(code__gte=self.begin_page_code(), code__lte=self.end_page_code).count()
+        return self.pages.count()
 
 @receiver(pre_save, sender=Reel)
 def pre_save_reel(sender, instance, **kwargs):

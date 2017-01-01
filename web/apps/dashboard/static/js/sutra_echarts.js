@@ -1,5 +1,5 @@
 
-var myChart = echarts.init(document.getElementById('charts'), 'customed');
+var myChart = echarts.init(document.getElementById('charts'), 'wonderland');
 
 myChart.showLoading();
 
@@ -49,13 +49,12 @@ $.get('/api/sutra/treemap/', function (diskData) {
     myChart.setOption(option = {
 
         title: {
-            text: '校对经本选择',
+            text: '校对经本领取',
             left: 'center'
         },
 
         tooltip: {
             formatter: function (info) {
-                console.log(info);
                 var value = info.value;
                 var treePathInfo = info.treePathInfo;
                 var treePath = [];
@@ -65,7 +64,7 @@ $.get('/api/sutra/treemap/', function (diskData) {
                 }
 
                 return [
-                    '<div class="tooltip-title">' + formatUtil.encodeHTML(treePath.join('/')) + '</div>',
+                    '<a href="/apps/tasks/verify_sutra/"+ info.data.sutra_id ><div class="tooltip-title">' + formatUtil.encodeHTML(treePath.join('/')) + '</div></a>',
                     '总卷数: ' + formatUtil.addCommas(info.data.reel) + ' 卷',
                 ].join('');
             }
@@ -90,4 +89,9 @@ $.get('/api/sutra/treemap/', function (diskData) {
             }
         ]
     });
+});
+
+myChart.on('click', function (params) {
+    console.log(params);
+    window.open("/apps/tasks/verify_sutra/"+ params.data.sutra_id);
 });

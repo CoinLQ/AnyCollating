@@ -43,6 +43,10 @@ var messagesetVue = new Vue({
                     self[modelName] = resp.results;
                 }
             );
+        },
+        taskStart: function(event){
+            console.log('ok')
+            window.location.href = '/apps/tasks/select/' + $(event.target).data('pk')
         }
     }
 });

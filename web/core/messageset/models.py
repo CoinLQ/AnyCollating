@@ -305,18 +305,10 @@ class Task(BaseModel, TaskStatus):
     end_time = models.DateTimeField(
         verbose_name=u'结束时间', **DICT_NULL_BLANK_TRUE
     )
-    current_page_code = models.CharField(
-        verbose_name=u'当前页编码', max_length=20, **DICT_NULL_BLANK_TRUE
-    )
     limit = models.Q(app_label='catalogue', model='reel')
     content_type = models.ForeignKey(ContentType, limit_choices_to=limit, on_delete=models.CASCADE, **DICT_NULL_BLANK_TRUE)
     object_id = models.PositiveIntegerField(**DICT_NULL_BLANK_TRUE)
     content_object = GenericForeignKey('content_type', 'object_id')
-
-    def next_page_code(self):
-        page_code = int(self.current_page_code.split('P')[-1]) + 1
-        n_page_code = '{0}V{1:04}P{2:04}'.format(self.content_object.sutra.code, self.content_object.start_vol, page_code)
-        return n_page_code
 
     def goto_next_page(self):
         model_clz = ContentType.objects.get(app_label='catalogue', model='page').model_class()
@@ -339,8 +331,7 @@ class Task(BaseModel, TaskStatus):
         return page.image_url
 
     def page_counts(self):
-        self.content_object.page_counts()
-
+        return self.content_object.pages.count()
 
     def __unicode__(self):
         return u'%s' % self.name
@@ -354,6 +345,25 @@ class Task(BaseModel, TaskStatus):
                 'pk': self.id
             }
         )
+
+    def build_pages(self):
+        for page in self.content_object.pages.all():
+            task_page = TaskPage(task=self, code=page.code, page=page, status=0)
+            task_page.save()
+
+    def update_percent(self):
+        self.percent = int(self.task_pages.filter(status=1).count()*100/self.task_pages.count())
+        if (self.percent == 100):
+            self.status = TaskStatus.EXCEPT
+        self.save()
+
+    @property
+    def task_pages(self):
+        return self.task_pages.order_by('id')
+
+    @property
+    def reel(self):
+        return self.content_object
 
     class Meta:
         verbose_name_plural = verbose_name = u'个人任务'
@@ -382,6 +392,19 @@ class Task(BaseModel, TaskStatus):
                 status=TaskStatus.DELETED
             )
 
+
+class TaskPage(BaseModel):
+    from core.catalogue.models import Page
+    task = models.ForeignKey(Task, related_name='task_pages', null=True, verbose_name = u'所属任务')
+    code = models.CharField(u'编码', max_length=20, default='', db_index=True, null=True, blank=True)
+    page = models.ForeignKey(Page, related_name='content_pages', null=True, verbose_name = u'所属页面')
+    text_content_trad = models.TextField(u'页文本（繁体）', default='', **DICT_NULL_BLANK_TRUE)
+    status = models.PositiveSmallIntegerField(
+        verbose_name=u'状态',
+        choices=UsableStatus.STATUS,
+        default=0,
+
+    )
 
 @receiver(m2m_changed, sender=SiteMailContent.receivers.through)
 def create_sitemail_datas(sender, instance, **kwargs):

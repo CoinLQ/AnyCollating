@@ -32,57 +32,104 @@
 <div id='task' data-id={{task.id}} data-type={{task.task_type}} data-status={{task.status}} data-percent={{task.percent}}></div>
 <div id="page-verify">
 
-<div id='edit-content'>
 
 
 <div class='row'>
+<div class='col-md-12 col-xs-12'>
+<div class='h4'>《#[sutra.display]》 #[sutra.era] - #[sutra.translator]</div>
+<span>#[tripitaka.display]/ 第#[reel.start_vol]册 / 第{!!task_pages[task.pos].page.page_num!!}页</span>
+</div>
+</div>
+<div class='row'>
+
+    <div class='col-md-12 col-xs-12' >
+    <div class='progress-banner'>
+    <template v-for="task_page in task_pages">
+        <span>
+            <a class="task-item" v-bind:class="{ 'edited-item': edited(task_page), 'done-item': done(task_page) }" href="javascript:void(0);" v-on:click="goto(task_page.id)">
+            </a>
+        </span>
+    </template>
+    </div>
+    </div>
+</div>
+
+
+<div class='row'>
+
 <div class='col-md-4 col-xs-12'>
 <span class='zoom' id='zoom-page-image'>
   <img src=#[image_url] width='500' height='642' alt='Daisy on the Ohoopee'/>
   <p></p>
 </span>
 </div>
- <div class='col-md-4 col-xs-12'>
+<div class='col-md-8 col-xs-12'>
+  <div id='edit-content'>
+    <div class='action-board'>
+     <div class='col-md-6'>
+    <a href="javascript:void(0);" class='btn btn-default previous' v-on:click="previous_page"  :disabled="task.pos == 0 ? true : false">上一页</a>
+    <a href="javascript:void(0);" class='btn btn-default next' v-on:click="next_page" :disabled="task.pos + 1 == total ? true : false">下一页</a>
+    <a href="javascript:void(0);" class='btn btn-primary' v-on:click="save_content">保存</a>
 
- <div id="edit" class="mode">
-  <textarea id="markdown" style="overflow: hidden; word-wrap: break-word; resize: none; height: 642px;"></textarea>
-  </div>
-</div>
- <div class='col-md-4 col-xs-12'>
-
-<ul class="nav nav-tabs" role="tablist">
-  <li class="nav-item active">
-    <a class="nav-link " data-toggle="tab" href="#pre" role="tab">预览</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" data-toggle="tab" href="#diff-content" role="tab">差异</a>
-  </li>
-</ul>
-<!-- Tab panes -->
-<div class="tab-content">
-  <div class="tab-pane active" id="pre" role="tabpanel">
-  <div id="preview" class="mode" style='min-height:606px'>
-    <div id="output" class="markdown-body">
+    <a href="javascript:void(0);" class='btn btn-danger' v-bind:class="{ hidden: can_shan}" v-on:click="mark_verify">善</a>
     </div>
-</div></div>
-  <div class="tab-pane" id="diff-content" role="tabpanel">...</div>
-</div>
+    <div class='col-md-6'>
+    </div>
+    </div>
+        <hr style='margin-top: 0px' align="center" width="100%"/>
+    <div class='row'>
+        <div class='col-md-6'>
+            <span>校对稿：</span>
+            <div id="edit" class="mode">
 
-
-</div>
-</div>
-</div>
-<div class='row'>
-<template v-for="item in items">
-    <div class='col-md-6 col-xs-12'>
-        <div id=#[item.reel.code] class="ui segment">
-            <div class='text_lines' style='background-color:white'>
-              #[ item.reel.text_content_trad ]
+                <textarea id="markdown" style="overflow: hidden; word-wrap: break-word; resize: none; height: 642px;"></textarea>
             </div>
         </div>
-    </div>
-</template>
+        <div class='col-md-6'>
+            <ul class="nav nav-tabs" role="tablist">
+                 <template v-for="task_page in diff_versions">
+                            <li class="nav-item">
+                                <a class="nav-link" data-toggle="tab" href=##[task_page.id] role="tab">#[task_page.user]</a>
+                            </li>
+                        </template>
+                <li class="nav-item">
+                    <a class="nav-link" data-toggle="tab" href="#reel-content" role="tab">参考文本</a>
+                </li>
+            </ul>
+            <!-- Tab panes -->
+            <div class="tab-content">
+                <div class="tab-pane active" id="pre" role="tabpanel">
+                    <div id="preview" class="mode" style='min-height:606px'>
+                        <div id="output" class="markdown-body">
+                        </div>
+                    </div>
+                </div>
+                 <template v-for="task_page in diff_versions">
+                        <div class="tab-pane output" id=#[task_page.id] role="tabpanel">#[task_page.text_content_trad]</div>
+                 </template>
+                <div class="tab-pane" id="diff-content" role="tabpanel">
+                    <ul class="nav nav-tabs" role="tablist" style='margin: 5px'>
+                        <template v-for="task_page in diff_versions">
+                            <li class="nav-item">
+                                <a class="nav-link" data-toggle="tab" href=##[task_page.id] role="tab">#[task_page.user]</a>
+                            </li>
+                        </template>
+                     </ul>
+                     <div class="tab-content">
+                     <template v-for="task_page in diff_versions">
+                        <div class="tab-pane" id=#[task_page.id] role="tabpanel">#[task_page.text_content_trad]</div>
+                    </template>
+                     </div>
+                </div>
+                <div class="tab-pane" id="reel-content" role="tabpanel">#[reel.text_content_trad]</div>
+            </div>
+
+
+<div></div>
 </div>
+</div>
+</div>
+
 </div>
 {% endblock %}
 
@@ -95,7 +142,7 @@
 <script src='/static/plugins/markdown/markdown.min.js' type="text/javascript"></script>
 <script type="text/javascript">
 $(function() {
-    var url = '/api/task/' + $('#task').data('id') + '/verify'
+    var url = '/api/task/' + $('#task').data('id')
     $.ajax({
         url: url,
         method: 'get',
@@ -103,9 +150,16 @@ $(function() {
         dataType: 'json',
         data: {},
         success: function(res) {
-            page_verify.image_url = res.image_url
-            page_verify.name = res.name
-           // setTimeout( function () { $('#ex1').zoom(); }, 200 );
+            page_verify.task = res
+            page_verify.task_pages = res.task_pages
+            page_verify.total = res.task_pages.length
+            page_verify.reel = res.reel
+            page_verify.sutra = res.reel.sutra
+            page_verify.tripitaka = res.reel.sutra.tripitaka
+            page_verify.normal_sutra = res.reel.sutra.tripitaka.normal_sutra
+            page_verify.image_url = res.task_pages[res.pos].page.image_url
+            page_verify.load_new_task_page(res.pos, true)
+            $('.nav-item:last a').tab('show')
         },
         error: function(xhr, status, err) {
             console.log(err);
@@ -114,13 +168,9 @@ $(function() {
     $('textarea').autosize();
 
     $('#markdown').bind('keyup', function() {
-        isEdited = true;
         $('#output').html(markdown.toHTML($('#markdown').val()));
+        page_verify.all_diff()
     });
-    $('#myTab a').click(function (e) {
-  e.preventDefault()
-  $(this).tab('show')
-})
 })
 
 
@@ -128,30 +178,48 @@ var page_verify = new Vue({
     el: '#page-verify',
     data: {
         total: 0,
-        name: '',
-        current: 0,
-        pages: [],
+        normal_sutra: {},
+        task: {},
+        tripitaka: {},
+        sutra: {},
+        reel: {},
+        task_pages: [],
+        diff_versions: [],
         image_url: ''
     },
-    watch: {
-        pages: function() {
-            //code here executes whenever the uploads array changes
-            //and runs AFTER the dom is updated, could use this in
-            //the parent component
+    computed: {
+        can_shan: function() {
+            return this.task_pages[this.task.pos].text_content_trad == ''
         },
+    },
+    watch: {
         image_url: function(){
-          console.log("111111")
           $('#zoom-page-image').zoom({url: this.image_url,
           callback: function(){
             $(this).colorbox({href: this.src});
           }});
-          //setTimeout( function () { $('#ex1').zoom({url: this.image_url}); }, 200 );
+            this.load_diff_version()
+            this.all_diff()
         }
     },
     methods: {
-        diff: function(text1, text2) {
+        edited: function(task_page){
+            return task_page.text_content_trad != ''
+        },
+        done: function(task_page){
+            return task_page.status == 1
+        },
+        all_diff: function(){
+            this.diff_versions.forEach(function(version){
+               var version_id = version.id
+               var version_text = version.text_content_trad
+               console.log(version_id)
+               $("#"+version_id).html(markdown.toHTML(page_verify.diff($('#markdown').val(), version_text)))
+            })
+        },
+        diff: function(base, text2) {
             //var diff = JsDiff.diffChars($(".text_lines:first").text(),$($(".text_lines")[1]).text()),
-            var diff = JsDiff.diffChars(text1, text2, {
+            var diff = JsDiff.diffChars(text2, base , {
                 ignoreWhitespace: true
             });
             var text = "", append_text = "";
@@ -161,7 +229,7 @@ var page_verify = new Vue({
                 if (part.added) {
                     if ( append_text === "")
                         return;
-                    append_text = (append_text.replace(/[\n\ \　]*/g,'')==='') ?  append_text  : "__" + append_text + "__";
+                    append_text = (append_text.replace(/[\n\ \　]*/g,'')==='') ?  append_text  : "__" + append_text +  "__";
                 } else if (part.removed) {
                     if ( append_text === "")
                         return;
@@ -171,9 +239,90 @@ var page_verify = new Vue({
                 }
                 text += append_text;
             });
-            $('textarea#markdown').val(text);
-            $('#output').html(markdown.toHTML(text));
+            return text;
+            //$('textarea#markdown').val(text);
+            //$('#output').html(markdown.toHTML(text));
         },
+        next_page: function() {
+            var page_pos = this.task.pos + 1
+            this.load_new_task_page(page_pos)
+        },
+        previous_page: function() {
+            var page_pos = this.task.pos - 1
+            this.load_new_task_page(page_pos)
+        },
+        load_new_task_page: function(pos, force = false ){
+            //var this = page_verify;
+            if (!force){
+                if ($('#markdown').val() != this.task_pages[this.task.pos].text_content_trad)
+                {
+                    alert('已更改，尚未保存！')
+                    return
+                }
+            }
+            this.task.pos = pos
+            $('#markdown').val(this.task_pages[this.task.pos].text_content_trad)
+            this.image_url = this.task_pages[this.task.pos].page.image_url
+            //$('#output').html(markdown.toHTML($('#markdown').val()));
+
+        },
+        save_content: function() {
+            var url = '/api/task/' + this.task_pages[this.task.pos].id + '/verify_save/'
+            var data = {text_content_trad: $('#markdown').val()}
+            var that = this
+            $.ajax({
+                url: url,
+                method: 'post',
+                cache: false,
+                dataType: 'json',
+                data: data,
+                success: function(res) {
+                    var object = that.task_pages[that.task.pos]
+                    that.task_pages.$set(that.task_pages.indexOf(object), _.assign(object, data));
+                },
+                error: function(xhr, status, err) {
+                    console.log(err);
+                }
+            });
+        },
+        goto: function(page_id) {
+            var page_pos = _.indexOf(_.map(this.task_pages, function(t){return t.id}), page_id)
+            this.load_new_task_page(page_pos)
+        },
+        mark_verify: function() {
+            var url = '/api/task/' + this.task_pages[this.task.pos].id + '/verify_shan/'
+            var data = {status: 1, text_content_trad: $('#markdown').val()}
+            var that = this
+            $.ajax({
+                url: url,
+                method: 'post',
+                cache: false,
+                dataType: 'json',
+                data: data,
+                success: function(res) {
+                    var object = that.task_pages[that.task.pos]
+                    that.task_pages.$set(that.task_pages.indexOf(object), _.assign(object, data));
+                },
+                error: function(xhr, status, err) {
+                    console.log(err);
+                }
+            });
+        },
+        load_diff_version: function() {
+            var url = '/api/task/' + this.task_pages[this.task.pos].id + '/page_diff_versions/'
+            $.ajax({
+                url: url,
+                method: 'get',
+                cache: false,
+                dataType: 'json',
+                success: function(res) {
+                    page_verify.diff_versions = res;
+                },
+                error: function(xhr, status, err) {
+                    console.log(err);
+                }
+            });
+        }
     }
 });
 </script>

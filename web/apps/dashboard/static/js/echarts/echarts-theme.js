@@ -25,8 +25,8 @@
             "#4ea397",
             "#22c3aa",
             "#7bd9a5",
-            "#d0648a",
-            "#f58db2",
+            "#B03A5B",
+            "#ae5f80",
             "#f2b3c9"
         ],
         "backgroundColor": "rgba(255,255,255,0)",
@@ -168,9 +168,9 @@
         "candlestick": {
             "itemStyle": {
                 "normal": {
-                    "color": "#d0648a",
+                    "color": "#B03A5B",
                     "color0": "transparent",
-                    "borderColor": "#d0648a",
+                    "borderColor": "#B03A5B",
                     "borderColor0": "#22c3aa",
                     "borderWidth": "1"
                 }
@@ -196,8 +196,8 @@
                 "#4ea397",
                 "#22c3aa",
                 "#7bd9a5",
-                "#d0648a",
-                "#f58db2",
+                "#B03A5B",
+                "#ae5f80",
                 "#f2b3c9"
             ],
             "label": {
@@ -480,7 +480,7 @@
         },
         "visualMap": {
             "color": [
-                "#d0648a",
+                "#B03A5B",
                 "#22c3aa",
                 "#adfff1"
             ]

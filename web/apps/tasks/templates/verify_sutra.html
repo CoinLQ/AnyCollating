@@ -1,0 +1,56 @@
+{% extends "app_base.html" %} {% block content_title %}
+<h2>选择校对经卷</h2> {% endblock %}
+{% block content %}
+
+
+<div class='row'>
+<div class='col-md-12'>
+{% for sutra in sutra_list %}
+<div>{{sutra.name}}</div>
+{% for reel in sutra.reel_list %}
+<div data-id={{reel.id}} class='task-item reel-{{reel.id}}' style='display: inline-block;'>第{{reel.reel_num}}卷</div>
+{% endfor %}
+{% endfor %}
+</div>
+</div>
+
+{% endblock %}
+
+
+{% block base_foot_script %}
+<script type="text/javascript">
+var task_reels={{task_reels|safe}}
+$(function() {
+    task_reels.forEach(function(item_id){
+        $(".reel-"+item_id).addClass('edited-item')
+        $(".reel-"+item_id).append('【领】')
+    })
+    $(".task-item").click(function(){
+        var that = $(this)
+        if(that.hasClass('edited-item'))
+        {
+            return;
+        }
+        that.addClass('edited-item')
+
+        var url = '/apps/tasks/verify_sutra/' + that.data('id') + '/choice'
+        $.ajax({
+            url: url,
+            method: 'post',
+            cache: false,
+            dataType: 'json',
+            data: {},
+            success: function(res) {
+                that.append('【领】')
+                console.log('ok')
+            },
+            error: function(xhr, status, err) {
+                that.removeClass('edited-item')
+            }
+        });
+
+    })
+})
+</script>
+
+{% endblock %}
