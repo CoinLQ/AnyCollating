@@ -217,6 +217,9 @@ var page_verify = new Vue({
                $("#"+version_id).html(markdown.toHTML(page_verify.diff($('#markdown').val(), version_text)))
             })
         },
+        reformat: function(){
+            $('#markdown').val().replace(/[\r\n\ \　]*/g,'')
+        },
         diff: function(base, text2) {
             //var diff = JsDiff.diffChars($(".text_lines:first").text(),$($(".text_lines")[1]).text()),
             var diff = JsDiff.diffChars(text2, base , {

@@ -27,7 +27,7 @@ def any_collating():
     #  projects path
     env.projects_path = join(env.django_user_home, 'projects')
     #  the root path of your project
-    env.code_root = join(env.projects_path, env.project)
+    env.code_root = join(env.projects_path, env.project, 'web')
     #  the path where manage.py of this project is located
     env.django_project_root = env.code_root
     #  the Python path to a Django settings module.
@@ -52,7 +52,7 @@ def any_collating():
     #  location of your pip requirements file
     #  http://www.pip-installer.org/en/latest/requirements.html#the-requirements-file-format
     #  set it to None to not use
-    env.requirements_file = join(env.code_root, 'requirement.txt')
+    env.requirements_file = join(env.code_root, 'requirements.txt')
     #  always ask user for confirmation when run any tasks
     env.ask_confirmation = False
 
@@ -140,8 +140,8 @@ def _reload_supervisorctl():
 def _prepare_django_project():
     with cd(env.django_project_root):
         if env.south_used:
-            virtenvrun('python manage.py migrate --noinput --verbosity=1 --setting=apps.settings.production')
-        virtenvsudo('python manage.py collectstatic --noinput --setting=apps.settings.production')
+            virtenvrun('python manage.py migrate --noinput --verbosity=1 --setting=settings.production')
+        virtenvsudo('python manage.py collectstatic --noinput --setting=settings.production')
 
 def _prepare_media_path():
     path = env.django_media_path.rstrip('/')

@@ -67,7 +67,7 @@ class TaskViewSet(ModelViewSet):
     @detail_route(methods=['get'], url_path='page_diff_versions')
     def page_diff_versions(self, request, pk):
         task_page = TaskPage.objects.get(pk=pk)
-        task_pages = TaskPage.objects.filter(page_id=task_page.page_id).exclude(pk=task_page.id)
+        task_pages = TaskPage.objects.filter(page_id=task_page.page_id, status=1).exclude(pk=task_page.id)
         ret = []
         for item in task_pages:
             ret.append( { 'user': item.task.creator.username,
