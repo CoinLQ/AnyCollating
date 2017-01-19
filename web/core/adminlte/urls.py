@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import TemplateView
 from core.adminlte.views import CommonListPageView, \
     CommonCreatePageView, CommonUpdatePageView, CommonDeletePageView, \
-    CommonDetailPageView
+    CommonDetailPageView, CommonExportPageView
 
 
 urlpatterns = [
@@ -14,6 +14,10 @@ urlpatterns = [
     url(r'/(?P<app_name>\w+)/(?P<model_name>\w+)/list$',
         login_required(CommonListPageView.as_view()),
         name='common_list_page'),
+
+    url(r'/(?P<app_name>\w+)/(?P<model_name>\w+)/export$',
+        login_required(CommonExportPageView.as_view()),
+        name='common_export_page'),
 
     url(r'/(?P<app_name>\w+)/(?P<model_name>\w+)/create$',
         login_required(CommonCreatePageView.as_view()),

@@ -1,5 +1,5 @@
 web:
-  restart: always
+  #restart: always
   build: ./web
   expose:
     - "8000"

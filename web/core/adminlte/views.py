@@ -1,9 +1,11 @@
 # coding=utf-8
+import xlwt
+
 from django.contrib.auth import views
 
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.generic import ListView, CreateView, \
     UpdateView, DeleteView, TemplateView, DetailView
 from core.adminlte import constants
@@ -117,6 +119,45 @@ class CommonListPageView(CommonPageViewMixin, ListView):
                     titles.append(mf.verbose_name)
         return titles, show_fields
 
+class CommonExportPageView(CommonPageViewMixin, ListView):
+    template_name = 'adminlte/common_list.html'
+
+    def get(self, request, *args, **kwargs):
+        self.app_name, self.model_name = get_app_model_name(kwargs)
+        model_type = get_model_content_type(self.app_name, self.model_name)
+        self.model = model_type.model_class()
+        meta_fields = self.model._meta.fields
+        columns = [mf.name for mf in meta_fields]
+        # if hasattr(self.model.Config, 'list_display_fields'):
+        #     columns = self.model.Config.list_display_fields
+        response = HttpResponse(content_type='application/ms-excel')
+        response['Content-Disposition'] = 'attachment; filename="'+ self.model_name + '.xls"'
+
+        wb = xlwt.Workbook(encoding='utf-8')
+        ws = wb.add_sheet(self.model_name)
+
+        # Sheet header, first row
+        row_num = 0
+
+        font_style = xlwt.XFStyle()
+        font_style.font.bold = True
+
+        for col_num in range(len(columns)):
+            name = columns[col_num]
+            t = self.model._meta.get_field_by_name(name)[0].verbose_name
+            ws.write(row_num, col_num, t, font_style)
+
+        # Sheet body, remaining rows
+        font_style = xlwt.XFStyle()
+
+        rows = self.model.objects.all().values_list(*columns)
+        for row in rows:
+            row_num += 1
+            for col_num in range(len(row)):
+                ws.write(row_num, col_num, row[col_num], font_style)
+
+        wb.save(response)
+        return response
 
 class CommonFormPageMixin(CommonPageViewMixin):
     template_name = 'adminlte/common_form.html'

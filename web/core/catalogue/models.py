@@ -157,7 +157,7 @@ class Reel(models.Model):
     reel_num = models.SmallIntegerField(u'卷序号', default=1)
     code = models.CharField(u'编码', max_length=16, default='', unique=True)
     start_vol = models.SmallIntegerField(u'起始册码', default=0)
-    start_page = models.SmallIntegerField(u'起始册码', default=0)
+    start_page = models.SmallIntegerField(u'起始页码', default=0)
     end_vol = models.SmallIntegerField(u'终止册码', default=0)
     end_page = models.SmallIntegerField(u'终止页码', default=0)
     text_content_trad = models.TextField(u'卷文本（繁体）', default='', **DICT_NULL_BLANK_TRUE)
@@ -207,7 +207,7 @@ class Page(models.Model):
         list_form_fields = ('reel', 'volume', 'sutra', 'text_content_trad',  'page_num', 'id')
 
     def get_image_path(self):
-        return "/data/share/dzj_characters/page_images/{0}/{1}.jpg".format(self.code[0:4], self.code)
+        return "/data/share/dzj_characters/page_images/{0}/{1}/{2:04}.jpg".format(self.sutra.code[0:4], self.code[6:10], self.page_num)
 
     @property
     def image_url(self):
