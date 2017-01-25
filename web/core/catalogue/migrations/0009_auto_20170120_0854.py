@@ -24,10 +24,5 @@ class Migration(migrations.Migration):
             model_name='reel',
             name='start_page',
             field=models.SmallIntegerField(default=0, verbose_name='\u8d77\u59cb\u9875\u7801'),
-        ),
-        migrations.AlterField(
-            model_name='varianttripitaka',
-            name='is_electronic',
-            field=models.SmallIntegerField(default=False, verbose_name='\u662f\u5426\u4e3a\u7535\u5b50\u7248', choices=[(0, '\u5426'), (1, '\u662f')]),
-        ),
+        )
     ]
