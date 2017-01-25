@@ -13,8 +13,6 @@ from core.adminlte.models import SystemConfig
 from core.organization.models import Staff
 
 
-
-
 def get_app_model_name(kwargs):
     app_name = kwargs.get('app_name').lower()
     model_name = kwargs.get('model_name').lower()
@@ -158,6 +156,38 @@ class CommonExportPageView(CommonPageViewMixin, ListView):
 
         wb.save(response)
         return response
+
+
+class CommonImportPageView(CommonPageViewMixin, TemplateView):
+
+    def get(self, request, *args, **kwargs):
+        self.app_name, self.model_name = get_app_model_name(kwargs)
+        model_type = get_model_content_type(self.app_name, self.model_name)
+        self.model = model_type.model_class()
+        context = super(CommonImportPageView, self).get_context_data(**kwargs)
+        context['page_title'] = u'导入{0}'.format(self.model._meta.verbose_name)
+        context['result'] = None
+        return self.render_to_response(context)
+
+    def render_to_response(self, context, **response_kwargs):
+        template_response = views.password_change(
+            self.request,
+            template_name='adminlte/common_import.html',
+            extra_context=context
+        )
+        return template_response
+
+    def post(self, request, *args, **kwargs):
+        context = super(CommonImportPageView, self).get_context_data(**kwargs)
+        self.app_name, self.model_name = get_app_model_name(kwargs)
+        model_type = get_model_content_type(self.app_name, self.model_name)
+        self.model = model_type.model_class()
+        context['page_title'] = u'导入{0}'.format(self.model._meta.verbose_name)
+        f = request.FILES['file']
+        ret, msg = self.model.import_from_xls(f)
+        context['result'] = ret
+        context['msg'] = msg
+        return self.render_to_response(context)
 
 class CommonFormPageMixin(CommonPageViewMixin):
     template_name = 'adminlte/common_form.html'

@@ -19,6 +19,11 @@ class TripitakaSerializer(serializers.ModelSerializer):
 
 class VariantTripitakaSerializer(serializers.ModelSerializer):
     tripitaka = serializers.StringRelatedField(many=False)
+    is_electronic = serializers.SerializerMethodField()
+
+    def get_is_electronic(self, obj):
+        return u'是' if obj.is_electronic else u'否'
+
     class Meta:
         model = VariantTripitaka
         fields = VariantTripitaka.Config.list_display_fields

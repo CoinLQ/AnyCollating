@@ -1,0 +1,58 @@
+{% extends "adminlte/base.html" %}
+
+{% block content_title %}
+    {{page_title}}
+{% endblock %}
+
+{% block base_head_style %}
+    <style type="text/css">
+        .errorlist {
+            list-style: none;
+            padding: 0;
+            color: red;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-primary">
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-md-5 col-sm-12">
+
+
+                            {% if result %}
+                                 <div class="callout callout-success">
+                                  <h4>提示信息</h4>
+                                    <p>更新全部成功.</p>
+                                  </div>
+                            {% endif %}
+                            <form method="post" action="" role="form"
+                                  id="importFile" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="form-group">
+                                    <label for="file">XLS文件上传:</label>
+                                    <input type="file" id="xls_file" name="file" class="form-control" placeholder="XLS File" multiple/>
+                                    {{ form.xls_file.errors }}
+                                </div>
+                                <div class="clearfix"></div>
+                                {% if result == False %}
+                                <div class="callout callout-danger">
+                                    <h4>发生错误!</h4>
+
+                                    <p>{% autoescape off %}{{ msg }}{% endautoescape %}</p>
+                                  </div>
+                                {% endif %}
+                                <button type="submit" class="btn btn-primary">
+                                    提  交
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

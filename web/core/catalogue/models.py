@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import xlrd
 from django.core.cache import cache
 from django.db import models
 from django.db.models import Avg, Count, Q
@@ -7,10 +8,11 @@ from django.core.urlresolvers import reverse_lazy, reverse
 from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.contenttypes.fields import GenericRelation
 from core.messageset.models import Task
-from core.adminlte.constants import DICT_NULL_BLANK_TRUE, TRUE_FALSE
+from core.adminlte.constants import DICT_NULL_BLANK_TRUE, TRUE_FALSE, SutraStatus
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.forms.models import model_to_dict
+from django.db import transaction
 
 # Create your models here.
 class Tripitaka(models.Model):
@@ -28,6 +30,30 @@ class Tripitaka(models.Model):
         list_display_fields = ('name', 'code', 'era', 'id')
         list_form_fields = list_display_fields
         search_fields = list_display_fields
+
+    @classmethod
+    #@transaction.atomic
+    def import_from_xls(cls, input_file):
+        book = xlrd.open_workbook(filename=None, file_contents=input_file.read())
+        sh = book.sheet_by_index(0)
+        # validate header
+        error_messages = []
+        for rl in range(sh.ncols):
+            verbose_fields = map(lambda x: x.verbose_name, cls._meta.fields)
+            if sh.cell_value(rowx=0, colx=rl) not in verbose_fields:
+                error_msg = u"{0} doesn't exist in table".format(sh.cell_value(rowx=0, colx=rl))
+                return False, error_msg
+        for rx in range(1, sh.nrows):
+            if not sh.cell_value(rowx=rx, colx=0):
+                try:
+                    t = cls(name=sh.cell_value(rowx=rx, colx=1), code=sh.cell_value(rowx=rx, colx=2), era=sh.cell_value(rowx=rx, colx=3))
+                    t.save()
+                except Exception, e:
+                    error_messages.append(u'第{0}行: {1}'.format(rx + 1, e.message))
+        if error_messages:
+            return False, '<br/>'.join(error_messages[:10])
+        else:
+            return True, 'OK'
 
 class VariantTripitaka(models.Model):
     tripitaka = models.ForeignKey(Tripitaka, null=False, related_name='variants', verbose_name = u'经藏')
@@ -53,6 +79,35 @@ class VariantTripitaka(models.Model):
         list_form_fields = ('display', 'tripitaka', 'code', 'vendor', 'id', 'pub_date', 'cover', 'is_electronic', 'volumes_count')
         search_fields = list_display_fields
 
+    @classmethod
+    #@transaction.atomic
+    def import_from_xls(cls, input_file):
+        book = xlrd.open_workbook(filename=None, file_contents=input_file.read())
+        sh = book.sheet_by_index(0)
+        # validate header
+        error_messages = []
+        for rl in range(sh.ncols):
+            verbose_fields = map(lambda x: x.verbose_name, cls._meta.fields)
+            if sh.cell_value(rowx=0, colx=rl) not in verbose_fields:
+                error_msg = u"{0} doesn't exist in table".format(sh.cell_value(rowx=0, colx=rl))
+                return False, error_msg
+        for rx in range(1, sh.nrows):
+            if not sh.cell_value(rowx=rx, colx=0):
+                try:
+                    t = cls(tripitaka_id=int(sh.cell_value(rowx=rx, colx=1)),
+                            code=sh.cell_value(rowx=rx, colx=2),
+                            vendor=sh.cell_value(rowx=rx, colx=3),
+                            pub_date=xlrd.xldate.xldate_as_datetime(sh.cell_value(rowx=rx, colx=4), 0).strftime("%Y-%m-%d"),
+                            display=sh.cell_value(rowx=rx, colx=6),
+                            volumes_count=sh.cell_value(rowx=rx, colx=8))
+                    t.save()
+                except Exception, e:
+                    error_messages.append(u'第{0}行: {1}'.format(rx + 1, e.message))
+        if error_messages:
+            return False, '<br/>'.join(error_messages[:10])
+        else:
+            return True, 'OK'
+
 class Volume(models.Model):
     tripitaka = models.ForeignKey(VariantTripitaka, null=False, related_name='volumes', verbose_name = u'经藏')
     code = models.CharField(u'编码', max_length=12, default='')
@@ -61,8 +116,6 @@ class Volume(models.Model):
     pages_count = models.SmallIntegerField(u'总页数', default=0)
     start_page = models.SmallIntegerField(u'起始页码', default=1)
     end_page = models.SmallIntegerField(u'终止页码', default=1)
-
-    cover = models.ImageField(u'封面信息', upload_to = 'cover', **DICT_NULL_BLANK_TRUE)
 
     @classmethod
     def format_volume(cls, tripitaka, number):
@@ -75,9 +128,37 @@ class Volume(models.Model):
         return u'%s %s' % (self.tripitaka.display, self.vol_num)
 
     class Config:
-        list_display_fields = ('tripitaka', 'code', 'vol_num', 'id', 'pages_count', 'start_page', 'end_page')
-        list_form_fields = ('tripitaka', 'vol_num', 'id', 'pages_count', 'start_page', 'end_page')
+        list_display_fields = ('tripitaka', 'code', 'vol_num', 'pages_count', 'start_page', 'end_page', 'id')
+        list_form_fields = ('tripitaka', 'vol_num', 'pages_count', 'start_page', 'end_page', 'id')
         search_fields = list_display_fields
+
+    @classmethod
+    #@transaction.atomic
+    def import_from_xls(cls, input_file):
+        book = xlrd.open_workbook(filename=None, file_contents=input_file.read())
+        sh = book.sheet_by_index(0)
+        # validate header
+        error_messages = []
+        for rl in range(sh.ncols):
+            verbose_fields = map(lambda x: x.verbose_name, cls._meta.fields)
+            if sh.cell_value(rowx=0, colx=rl) not in verbose_fields:
+                error_msg = u"{0} doesn't exist in table".format(sh.cell_value(rowx=0, colx=rl))
+                return False, error_msg
+        for rx in range(1, sh.nrows):
+            if not sh.cell_value(rowx=rx, colx=0):
+                try:
+                    t = cls(tripitaka_id=sh.cell_value(rowx=rx, colx=1),
+                            vol_num=int(sh.cell_value(rowx=rx, colx=3)),
+                            pages_count=sh.cell_value(rowx=rx, colx=4),
+                            start_page=sh.cell_value(rowx=rx, colx=5),
+                            end_page=sh.cell_value(rowx=rx, colx=6))
+                    t.save()
+                except Exception, e:
+                    error_messages.append(u'第{0}行: {1}'.format(rx + 1, e.message))
+        if error_messages:
+            return False, '<br/>'.join(error_messages[:10])
+        else:
+            return True, 'OK'
 
 @receiver(pre_save, sender=Volume)
 def pre_save_volume(sender, instance, **kwargs):
@@ -92,7 +173,7 @@ class LQSutra(models.Model):
     name = models.CharField(u'名称', max_length=128, default='')
     translator = models.CharField(u'译者', max_length=32, default='')
     reels_count = models.SmallIntegerField(u'总卷数', default=1)
-    is_opened = models.BooleanField(u'是否开放校对', choices=TRUE_FALSE, default=False)
+    is_opened = models.BooleanField(u'是否可校勘', choices=TRUE_FALSE, default=False)
 
     tasks = GenericRelation(Task, related_query_name='tasks')
 
@@ -106,6 +187,33 @@ class LQSutra(models.Model):
         list_display_fields = ('name', 'translator', 'code', 'reels_count',  'is_opened', 'id')
         list_form_fields = list_display_fields
         search_fields = list_display_fields
+
+    @classmethod
+    #@transaction.atomic
+    def import_from_xls(cls, input_file):
+        book = xlrd.open_workbook(filename=None, file_contents=input_file.read())
+        sh = book.sheet_by_index(0)
+        # validate header
+        error_messages = []
+        for rl in range(sh.ncols):
+            verbose_fields = map(lambda x: x.verbose_name, cls._meta.fields)
+            if sh.cell_value(rowx=0, colx=rl) not in verbose_fields:
+                error_msg = u"{0} doesn't exist in table".format(sh.cell_value(rowx=0, colx=rl))
+                return False, error_msg
+        for rx in range(1, sh.nrows):
+            if not sh.cell_value(rowx=rx, colx=0):
+                try:
+                    t = cls(code=sh.cell_value(rowx=rx, colx=1),
+                            name=sh.cell_value(rowx=rx, colx=2),
+                            translator=sh.cell_value(rowx=rx, colx=3),
+                            reels_count=sh.cell_value(rowx=rx, colx=4))
+                    t.save()
+                except Exception, e:
+                    error_messages.append(u'第{0}行: {1}'.format(rx + 1, e.message))
+        if error_messages:
+            return False, '<br/>'.join(error_messages[:10])
+        else:
+            return True, 'OK'
 
 class Sutra(models.Model):
     code = models.CharField(u'编码', max_length=16, default='', unique=True)
@@ -124,6 +232,8 @@ class Sutra(models.Model):
     end_page = models.SmallIntegerField(u'终止页码', default=0)
     discription = models.CharField(u'描述信息', max_length=512, default='', **DICT_NULL_BLANK_TRUE)
 
+    status = models.SmallIntegerField(u'校对状态', choices=SutraStatus.STATUS, default=SutraStatus.UNREADY)
+
     def __unicode__(self):
         return '%s-%s' % (self.display, self.tripitaka.display)
 
@@ -141,6 +251,42 @@ class Sutra(models.Model):
         reel_code = '{0}-R{1:03}'.format(sutra_code, index)
         reel = Reel.objects.filter(code=reel_code).first()
         return model_to_dict(reel)
+
+    @classmethod
+    #@transaction.atomic
+    def import_from_xls(cls, input_file):
+        book = xlrd.open_workbook(filename=None, file_contents=input_file.read())
+        sh = book.sheet_by_index(0)
+        # validate header
+        error_messages = []
+        for rl in range(sh.ncols):
+            verbose_fields = map(lambda x: x.verbose_name, cls._meta.fields)
+            if sh.cell_value(rowx=0, colx=rl) not in verbose_fields:
+                error_msg = u"{0} doesn't exist in table".format(sh.cell_value(rowx=0, colx=rl))
+                return False, error_msg
+        for rx in range(1, sh.nrows):
+            if not sh.cell_value(rowx=rx, colx=0):
+                try:
+                    t = cls(tripitaka_id=int(sh.cell_value(rowx=rx, colx=2)),
+                            normal_sutra_id=int(sh.cell_value(rowx=rx, colx=3)),
+                            display=sh.cell_value(rowx=rx, colx=4),
+                            era=sh.cell_value(rowx=rx, colx=5),
+                            author=sh.cell_value(rowx=rx, colx=6),
+                            translator=sh.cell_value(rowx=rx, colx=7),
+                            reels_count=sh.cell_value(rowx=rx, colx=8),
+                            start_vol=int(sh.cell_value(rowx=rx, colx=9)),
+                            start_page=int(sh.cell_value(rowx=rx, colx=10)),
+                            end_vol=int(sh.cell_value(rowx=rx, colx=11)),
+                            end_page=int(sh.cell_value(rowx=rx, colx=12)),
+                            discription=sh.cell_value(rowx=rx, colx=13)
+                            )
+                    t.save()
+                except Exception, e:
+                    error_messages.append(u'第{0}行: {1}'.format(rx + 1, e.message))
+        if error_messages:
+            return False, '<br/>'.join(error_messages[:10])
+        else:
+            return True, 'OK'
 
 @receiver(pre_save, sender=Sutra)
 def pre_save_sutra(sender, instance, **kwargs):
@@ -163,6 +309,8 @@ class Reel(models.Model):
     text_content_trad = models.TextField(u'卷文本（繁体）', default='', **DICT_NULL_BLANK_TRUE)
     text_content_simpl = models.TextField(u'卷文本（简体）', default='', **DICT_NULL_BLANK_TRUE)
 
+    status = models.SmallIntegerField(u'校对状态', choices=SutraStatus.STATUS, default=SutraStatus.READY)
+
     def __unicode__(self):
         return u'%s 第%s卷' % (self.sutra.__unicode__(), self.reel_num)
 
@@ -183,6 +331,37 @@ class Reel(models.Model):
     def page_counts(self):
         return self.pages.count()
 
+    @classmethod
+    #@transaction.atomic
+    def import_from_xls(cls, input_file):
+        book = xlrd.open_workbook(filename=None, file_contents=input_file.read())
+        sh = book.sheet_by_index(0)
+        # validate header
+        error_messages = []
+        for rl in range(sh.ncols):
+            verbose_fields = map(lambda x: x.verbose_name, cls._meta.fields)
+            if sh.cell_value(rowx=0, colx=rl) not in verbose_fields:
+                error_msg = u"{0} doesn't exist in table".format(sh.cell_value(rowx=0, colx=rl))
+                return False, error_msg
+        for rx in range(1, sh.nrows):
+            if not sh.cell_value(rowx=rx, colx=0):
+                try:
+                    t = cls(sutra_id=int(sh.cell_value(rowx=rx, colx=1)),
+                            reel_num=int(sh.cell_value(rowx=rx, colx=2)),
+                            start_vol=int(sh.cell_value(rowx=rx, colx=4)),
+                            start_page=int(sh.cell_value(rowx=rx, colx=5)),
+                            end_vol=int(sh.cell_value(rowx=rx, colx=6)),
+                            end_page=int(sh.cell_value(rowx=rx, colx=7)),
+                            text_content_trad=sh.cell_value(rowx=rx, colx=8)
+                            )
+                    t.save()
+                except Exception, e:
+                    error_messages.append(u'第{0}行: {1}'.format(rx + 1, e.message))
+        if error_messages:
+            return False, '<br/>'.join(error_messages[:10])
+        else:
+            return True, 'OK'
+
 @receiver(pre_save, sender=Reel)
 def pre_save_reel(sender, instance, **kwargs):
     if instance.pk is not None:
@@ -198,6 +377,8 @@ class Page(models.Model):
     page_num = models.SmallIntegerField(u'序号', default=1)
     text_content_trad = models.TextField(u'页文本（繁体）', default='', **DICT_NULL_BLANK_TRUE)
     text_content_simpl = models.TextField(u'页文本（简体）', default='', **DICT_NULL_BLANK_TRUE)
+
+    status = models.SmallIntegerField(u'校对状态', choices=SutraStatus.STATUS, default=SutraStatus.READY)
 
     class Meta:
         verbose_name_plural = verbose_name = u'页信息'

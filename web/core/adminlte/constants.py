@@ -12,10 +12,7 @@ SEX = (
     (FEMALE, u'女'),
 )
 
-TRUE_FALSE = (
-    (True, u'是'),
-    (False, u'否')
-)
+TRUE_FALSE = ((False, u'否'), (True, u'是'))
 
 DICT_NULL_BLANK_TRUE = {
     'null': True,
@@ -59,16 +56,27 @@ class UsableStatus(object):
         (DELETED, u'删除'),
     )
 
+class SutraStatus(object):
+    UNREADY = 0
+    READY = 1
+    DONE = 3
+    DELETED = 99
+    STATUS = (
+        (UNREADY, u'未准备好'),
+        (READY, u'待校对'),
+        (DONE, u'完成校对'),
+        (DELETED, u'已删除'),
+    )
 
 class TaskStatus(object):
     NORMAL = 0
-    EXCEPT = 1
-    FINISHED = 2
+    FINISHED = 1
+    EXCEPT = 2
     DELETED = 99
     TASK_STATUS = (
         (NORMAL, u'正常(进行中)'),
-        (EXCEPT, u'异常'),
         (FINISHED, u'完成'),
+        (EXCEPT, u'异常'),
         (DELETED, u'删除')
     )
 
@@ -91,5 +99,5 @@ class Position(object):
         (STAFF, u'义工'),
         (MANAGE, u'义工组长'),
         (INN_STAFF, u'管理员'),
-        (MASTER, u'法师'),
+        (MASTER, u'部组法师'),
     )
