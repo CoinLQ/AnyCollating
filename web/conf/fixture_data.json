@@ -1,60 +1,6 @@
 [
    {
       "fields":{
-         "code":"YL",
-         "name":"\u6c38\u4e50\u5317\u85cf",
-         "era":"\u660e-\u6c38\u4e50"
-      },
-      "model":"catalogue.tripitaka",
-      "pk":1
-   },
-   {
-      "fields":{
-         "code":"DZ",
-         "name":"\u5927\u6b63\u85cf",
-         "era":"\u65e5\u672c\u00b7\u5927\u6b63"
-      },
-      "model":"catalogue.tripitaka",
-      "pk":2
-   },
-   {
-      "fields":{
-         "code":"QS",
-         "name":"\u789b\u7802\u85cf",
-         "era":"\u5357\u5b8b"
-      },
-      "model":"catalogue.tripitaka",
-      "pk":3
-   },
-   {
-      "fields":{
-         "code":"HW",
-         "name":"\u6d2a\u6b66\u5357\u85cf",
-         "era":"\u660e-\u6d2a\u6b66"
-      },
-      "model":"catalogue.tripitaka",
-      "pk":4
-   },
-   {
-      "fields":{
-         "code":"JX",
-         "name":"\u5609\u5174\u85cf",
-         "era":"\u660e\u6e05\u4e4b\u95f4"
-      },
-      "model":"catalogue.tripitaka",
-      "pk":5
-   },
-   {
-      "fields":{
-         "translator":"\u9e20\u6469\u7f57\u4ec0",
-         "code":"S29302",
-         "name":"\u91d1\u521a\u822c\u82e5\u6ce2\u7f57\u871c\u591a\u5fc3\u7ecf"
-      },
-      "model":"catalogue.lqsutra",
-      "pk":1
-   },
-   {
-      "fields":{
          "name":"\u666e\u901a\u7528\u6237\u7ec4",
          "permissions":[
 
