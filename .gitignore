@@ -6,4 +6,6 @@ env
 __pycache__
 .venv
 .cache
-static/**/*
+web/static/**/*
+web/media/**/*
+web/logs
