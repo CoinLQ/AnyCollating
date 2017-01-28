@@ -77,8 +77,8 @@ class VariantTripitaka(models.Model):
         verbose_name_plural = verbose_name = u'实体经藏'
 
     class Config:
-        list_display_fields = ('display', 'tripitaka', 'code', 'vendor', 'pub_date', 'is_electronic', 'volumes_count', 'id')
-        list_form_fields = ('display', 'tripitaka', 'code', 'vendor', 'pub_date', 'cover', 'is_electronic', 'volumes_count', 'id')
+        list_display_fields = ('display', 'tripitaka', 'code', 'vendor', 'pub_version', 'pub_date', 'is_electronic', 'volumes_count', 'id')
+        list_form_fields = ('display', 'tripitaka', 'code', 'vendor', 'pub_version', 'pub_date', 'cover', 'is_electronic', 'volumes_count', 'id')
         search_fields = list_display_fields
 
     @classmethod
@@ -100,6 +100,7 @@ class VariantTripitaka(models.Model):
                             code=sh.cell_value(rowx=rx, colx=2),
                             vendor=sh.cell_value(rowx=rx, colx=3),
                             pub_date=xlrd.xldate.xldate_as_datetime(sh.cell_value(rowx=rx, colx=4), 0).strftime("%Y-%m-%d"),
+                            pub_version=sh.cell_value(rowx=rx, colx=5),
                             display=sh.cell_value(rowx=rx, colx=6),
                             volumes_count=sh.cell_value(rowx=rx, colx=8))
                     t.save()
