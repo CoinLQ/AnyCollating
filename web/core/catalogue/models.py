@@ -24,6 +24,7 @@ class Tripitaka(models.Model):
         return self.name
 
     class Meta:
+        ordering = ('id',)
         verbose_name_plural = verbose_name = u'经藏'
 
     class Config:
@@ -60,7 +61,7 @@ class VariantTripitaka(models.Model):
     code = models.CharField(u'编码', max_length=6, unique=True)
     vendor = models.CharField(u'出版商', max_length=64)
     pub_date = models.DateField(u'出版日期')
-    pub_version = models.CharField(u'版本批次', max_length=12)
+    pub_version = models.CharField(u'版本批次', max_length=32)
     display = models.CharField(u'名称', max_length=64)
 
     cover = models.ImageField(u'封面信息', upload_to = 'cover', **DICT_NULL_BLANK_TRUE)
@@ -72,11 +73,12 @@ class VariantTripitaka(models.Model):
         return self.display
 
     class Meta:
+        ordering = ('id',)
         verbose_name_plural = verbose_name = u'实体经藏'
 
     class Config:
         list_display_fields = ('display', 'tripitaka', 'code', 'vendor', 'pub_date', 'is_electronic', 'volumes_count', 'id')
-        list_form_fields = ('display', 'tripitaka', 'code', 'vendor', 'id', 'pub_date', 'cover', 'is_electronic', 'volumes_count')
+        list_form_fields = ('display', 'tripitaka', 'code', 'vendor', 'pub_date', 'cover', 'is_electronic', 'volumes_count', 'id')
         search_fields = list_display_fields
 
     @classmethod
@@ -122,6 +124,7 @@ class Volume(models.Model):
         return '{0}-V{1:04}'.format(tripitaka.code, number)
 
     class Meta:
+        ordering = ('id',)
         verbose_name_plural = verbose_name = u'册'
 
     def __unicode__(self):
@@ -181,6 +184,7 @@ class LQSutra(models.Model):
         return '%s-%s' % (self.name, self.translator)
 
     class Meta:
+        ordering = ('id',)
         verbose_name_plural = verbose_name = u'龙泉经目'
 
     class Config:
@@ -203,7 +207,7 @@ class LQSutra(models.Model):
         for rx in range(1, sh.nrows):
             if not sh.cell_value(rowx=rx, colx=0):
                 try:
-                    t = cls(code=sh.cell_value(rowx=rx, colx=1),
+                    t = cls(code='{0:05}'.format(int(sh.cell_value(rowx=rx, colx=1))),
                             name=sh.cell_value(rowx=rx, colx=2),
                             translator=sh.cell_value(rowx=rx, colx=3),
                             reels_count=sh.cell_value(rowx=rx, colx=4))
@@ -293,7 +297,7 @@ def pre_save_sutra(sender, instance, **kwargs):
     if instance.pk is not None:
         pass
     else:
-        instance.code = '%s%s' % (instance.tripitaka.code, instance.normal_sutra.code)
+        instance.code = '%sS%s' % (instance.tripitaka.code, instance.normal_sutra.code)
     # initial image size info
 
 
