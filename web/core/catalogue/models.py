@@ -304,7 +304,7 @@ def pre_save_sutra(sender, instance, **kwargs):
 
 # juan (ancient mode)
 class Reel(models.Model):
-    sutra = models.ForeignKey(Sutra, null=False, related_name='reels', verbose_name = u'实体经本')
+    sutra = models.ForeignKey(Sutra, null=False, related_name='reels', verbose_name = u'实体经本ID')
     reel_num = models.SmallIntegerField(u'卷序号', default=1)
     code = models.CharField(u'编码', max_length=16, default='', unique=True)
     start_vol = models.SmallIntegerField(u'起始册码', default=0)

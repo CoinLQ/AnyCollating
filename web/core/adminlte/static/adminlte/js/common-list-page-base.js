@@ -1,17 +1,3 @@
-Vue.filter('truncate', function(value) {
-    var length = 50;
-    if (typeof(value) != 'string') {
-        return value;
-    }
-    if(value.length <= length) {
-        return value;
-    }
-    else {
-        return value.substring(0, length) + '...';
-    }
-});
-
-
 var CommonListPageVue = Vue.extend({
     el: function(){
         return '#commonDataTableRow';
@@ -42,9 +28,9 @@ var CommonListPageVue = Vue.extend({
                 $(event.target).data('pk')
             );
         },
-        create: function (event, modelName) {
+        create: function (modelName, event) {
             var name = this.modelName;
-            if(modelName && (typeof modelName === 'string')){
+            if(modelName){
                 name = modelName;
             }
             window.location.href = Urls['adminlte:common_create_page'](
