@@ -19,8 +19,8 @@ class CommonListAPIView(ListCreateAPIView):
 
         serialize_name = self.model.__name__ + 'Serializer'
         module_str = 'core.%s.serializers' % self.app_name
-        #if module_str not in sys.modules:
-        #    module_str = 'apps.%s.serializers' % self.app_name
+        if module_str not in sys.modules:
+           module_str = 'apps.%s.serializers' % self.app_name
         serializer_module = sys.modules[module_str]
 
         self.queryset = self.model.objects.all()

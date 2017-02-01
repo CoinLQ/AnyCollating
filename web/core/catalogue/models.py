@@ -7,7 +7,6 @@ from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.contenttypes.fields import GenericRelation
-from core.messageset.models import Task
 from core.adminlte.constants import DICT_NULL_BLANK_TRUE, TRUE_FALSE, SutraStatus
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
@@ -173,13 +172,13 @@ def pre_save_volume(sender, instance, **kwargs):
 
 @python_2_unicode_compatible
 class LQSutra(models.Model):
+    #from apps.tasks.models import Task
     code = models.CharField(u'编码', max_length=6, default='')
     name = models.CharField(u'名称', max_length=128, default='')
     translator = models.CharField(u'译者', max_length=32, default='')
     reels_count = models.SmallIntegerField(u'总卷数', default=1)
     is_opened = models.BooleanField(u'是否可校勘', choices=TRUE_FALSE, default=False)
-
-    tasks = GenericRelation(Task, related_query_name='tasks')
+    #tasks = GenericRelation(Task, related_query_name='tasks')
 
     def __str__(self):
         return '%s-%s' % (self.name, self.translator)
@@ -336,6 +335,14 @@ class Reel(models.Model):
     def page_counts(self):
         return self.pages.count()
 
+    def build_pages(self):
+        sutra = self.sutra
+        if self.start_vol == self.end_vol:
+            volume = sutra.tripitaka.volumes.get_or_create(vol_num=self.start_vol)
+        for page_num in range(self.start_page, self.end_page+1):
+            page = Page(reel_id=self.id, volume_id=volume[0].id, sutra_id=sutra.id, page_num=page_num)
+            page.save()
+
     @classmethod
     #@transaction.atomic
     def import_from_xls(cls, input_file):
@@ -393,11 +400,11 @@ class Page(models.Model):
         list_form_fields = ('reel', 'volume', 'sutra', 'text_content_trad',  'page_num', 'id')
 
     def get_image_path(self):
-        return "/data/share/dzj_characters/page_images/{0}/{1}/{2:04}.jpg".format(self.sutra.code[0:4], self.code[6:10], self.page_num)
+        return "/data/share/dzj_characters/page_images/{0}/{1:04}/{2:04}.png".format(self.sutra.code[0:4], self.code[11:15], self.page_num)
 
     @property
     def image_url(self):
-        return "/page_images/{0}/{1}.jpg".format(self.code[0:4], self.code)
+        return "/page_images/{0}/{1}/{2:04}.png".format(self.code[0:4], self.code[11:15], self.page_num)
 
 @receiver(pre_save, sender=Page)
 def pre_save_page(sender, instance, **kwargs):

@@ -1,7 +1,7 @@
 # coding=utf-8
 
 from django.conf.urls import url
-from apps.tasks.views import VerifySutraView, start, select, verify_sutra_choice
+from .views import VerifySutraView, start, select, verify_sutra_choice
 
 
 urlpatterns = [

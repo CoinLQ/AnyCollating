@@ -1,7 +1,7 @@
 # coding=utf-8
 
 from django.contrib import admin
-from .models import (SiteMailSend, Notification, Task, NotificationContent,
+from .models import (SiteMailSend, Notification, NotificationContent,
                      SiteMailContent, SiteMailReceive)
 
 
@@ -27,10 +27,5 @@ class NotificationContentAdmin(admin.ModelAdmin):
 
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(Task)
-class TaskAdmin(admin.ModelAdmin):
     pass
 

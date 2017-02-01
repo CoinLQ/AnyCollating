@@ -1,7 +1,7 @@
 from rest_framework.serializers import ModelSerializer
 
 from core.catalogue.models import Sutra, Page, Reel
-from core.messageset.models import Task, TaskPage
+from apps.tasks.models import Task, TaskPage
 
 
 class SutraSerializer(ModelSerializer):

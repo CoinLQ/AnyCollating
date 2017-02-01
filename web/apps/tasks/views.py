@@ -2,7 +2,7 @@
 from django.views.generic import ListView, CreateView, \
     UpdateView, DeleteView, TemplateView, DetailView
 from core.catalogue.models import Sutra, Reel, LQSutra
-from core.messageset.models import Task
+from .models import Task
 from django.shortcuts import render, get_object_or_404
 
 from django.views.generic.base import RedirectView
@@ -41,6 +41,8 @@ def verify_sutra_choice(request, pk):
     reel = Reel.objects.get(pk=pk)
     task = Task(creator=request.user, content_object=reel, name=u'校对'+reel.__unicode__())
     task.save()
+    request.user.staff_of.prefer_task_id = task_id
+    request.user.staff_of.save()
     task.build_pages()
     return {'status': 0}
 

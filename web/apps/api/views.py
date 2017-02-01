@@ -4,7 +4,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 
 from core.catalogue.models import LQSutra, Sutra, Reel
-from core.messageset.models import Task, TaskPage
+from apps.tasks.models import Task, TaskPage
 
 from .serializers import SutraSerializer, TaskSerializer
 
