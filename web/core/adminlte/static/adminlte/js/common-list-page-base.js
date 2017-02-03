@@ -30,7 +30,7 @@ var CommonListPageVue = Vue.extend({
         },
         create: function (modelName, event) {
             var name = this.modelName;
-            if(modelName){
+            if(modelName && (typeof modelName === 'string')){
                 name = modelName;
             }
             window.location.href = Urls['adminlte:common_create_page'](
