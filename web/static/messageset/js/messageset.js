@@ -14,7 +14,7 @@ var messagesetVue = new Vue({
         var data = {'status': 0};
         this.loadData('sitemailreceive', {"status": 0});
         this.loadData('notification', data);
-        this.loadData('task', data);
+        this.loadTaskData('task', data);
     },
     methods: {
         detail: function(model, event){
@@ -44,8 +44,17 @@ var messagesetVue = new Vue({
                 }
             );
         },
+        loadTaskData: function(modelName, data){
+            var self = this,
+                url = $.AdminLTE.getApiUrl('tasks', modelName);
+            $.AdminLTE.apiGet(
+                url, data,
+                function(resp){
+                    self[modelName] = resp.results;
+                }
+            );
+        },
         taskStart: function(event){
-            console.log('ok')
             window.location.href = '/apps/tasks/select/' + $(event.target).data('pk')
         }
     }

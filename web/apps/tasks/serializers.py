@@ -1,6 +1,8 @@
 # coding=utf-8
 from rest_framework import serializers
 from .models import Task
+from core.catalogue.models import LQSutra, Sutra, Reel
+
 
 class ContentObjectRelatedField(serializers.RelatedField):
     """

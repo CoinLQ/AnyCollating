@@ -38,22 +38,29 @@ def start(request):
 
 @ajax_request
 def verify_sutra_choice(request, pk):
-    reel = Reel.objects.get(pk=pk)
-    task = Task(creator=request.user, content_object=reel, name=u'校对'+reel.__unicode__())
-    task.save()
-    request.user.staff_of.prefer_task_id = task_id
-    request.user.staff_of.save()
-    task.build_pages()
+    reel = get_object_or_404(Reel, pk=pk)
+    collator = request.user.staff_of
+    if not collator.can_accept_task(0):
+        return {'status': -1, 'message': '请完成当前的校对任务'}
+    task = Task.accept_verify_task(request.user, reel)
+    collator.prefer_task_id = task.id
+    collator.save()
     return {'status': 0}
+
 
 @render_to()
 def select(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    if not task.owned_by(request.user):
+        task = get_object_or_None(Task, id=request.user.staff_of.prefer_task_id)
 
-    task = get_object_or_None(Task, id=task_id)
     if (task.task_type == 0):
         template_name = 'verify_task.html'
     else:
         template_name = 'collating_task.html'
-    request.user.staff_of.prefer_task_id = task_id
-    request.user.staff_of.save()
+
+    if task.id != request.user.staff_of.prefer_task_id:
+        request.user.staff_of.prefer_task_id = task_id
+        request.user.staff_of.save()
+
     return {'task': {'id': task.id, 'task_type': task.task_type, 'percent': task.percent, 'status': task.status}, 'TEMPLATE': template_name}

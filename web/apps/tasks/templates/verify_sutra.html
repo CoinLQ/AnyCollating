@@ -27,12 +27,6 @@ $(function() {
     })
     $(".task-item").click(function(){
         var that = $(this)
-        if(that.hasClass('edited-item'))
-        {
-            return;
-        }
-        that.addClass('edited-item')
-
         var url = '/apps/tasks/verify_sutra/' + that.data('id') + '/choice'
         $.ajax({
             url: url,
@@ -41,7 +35,16 @@ $(function() {
             dataType: 'json',
             data: {},
             success: function(res) {
-                that.append('【领】')
+                if(!that.hasClass('edited-item'))
+                {
+                    that.addClass('edited-item')
+                }
+                if (res.status == 0) {
+                    that.append('【领】')
+                }else {
+                    alert(res.message);
+                }
+
                 console.log('ok')
             },
             error: function(xhr, status, err) {

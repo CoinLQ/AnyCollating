@@ -177,7 +177,8 @@ class LQSutra(models.Model):
     name = models.CharField(u'名称', max_length=128, default='')
     translator = models.CharField(u'译者', max_length=32, default='')
     reels_count = models.SmallIntegerField(u'总卷数', default=1)
-    is_opened = models.BooleanField(u'是否可校勘', choices=TRUE_FALSE, default=False)
+    can_collated = models.BooleanField(u'是否可校堪', choices=TRUE_FALSE, default=False)
+    is_opened = models.BooleanField(u'是否可校对', choices=TRUE_FALSE, default=False)
     #tasks = GenericRelation(Task, related_query_name='tasks')
 
     def __str__(self):

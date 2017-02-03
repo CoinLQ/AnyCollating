@@ -70,13 +70,13 @@ class SutraStatus(object):
 
 class TaskStatus(object):
     NORMAL = 0
-    FINISHED = 1
-    EXCEPT = 2
+    READY = 1
+    DONE = 2
     DELETED = 99
     TASK_STATUS = (
         (NORMAL, u'正常(进行中)'),
-        (FINISHED, u'完成'),
-        (EXCEPT, u'异常'),
+        (DONE, u'完成'),
+        (READY, u'已就绪'),
         (DELETED, u'删除')
     )
 

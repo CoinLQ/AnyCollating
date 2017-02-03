@@ -1,4 +1,5 @@
 # coding=utf-8
+import sys
 from django.core.urlresolvers import reverse
 
 from django.db import models
@@ -6,7 +7,7 @@ from mptt.fields import TreeForeignKey
 from mptt.models import MPTTModel
 
 from core.adminlte import constants
-from core.adminlte.constants import UsableStatus, DICT_NULL_BLANK_TRUE
+from core.adminlte.constants import TaskStatus, UsableStatus, DICT_NULL_BLANK_TRUE
 from core.adminlte.models import BaseModel, User
 
 from annoying.fields import AutoOneToOneField
@@ -170,6 +171,11 @@ class Staff(AbstractPersonInfo):
                 'pk': self.id
             }
         )
+
+    def can_accept_task(self, task_type):
+        Task =getattr(sys.modules['apps.tasks.models'], 'Task')
+        task = Task.objects.filter(creator=self.user, task_type=task_type, status=TaskStatus.NORMAL).first()
+        return not task
 
     class Meta:
         verbose_name_plural = verbose_name = u'义工'

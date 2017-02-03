@@ -66,6 +66,13 @@ class Task(BaseModel, TaskStatus):
     def page_counts(self):
         return self.content_object.pages.count()
 
+    @staticmethod
+    def accept_verify_task(user, reel):
+        task = Task(creator=user, content_object=reel, name=u'校对'+reel.__unicode__())
+        task.save()
+        task.build_pages()
+        return task
+
     def __unicode__(self):
         return u'%s' % self.name
 
@@ -86,9 +93,13 @@ class Task(BaseModel, TaskStatus):
 
     def update_percent(self):
         self.percent = int(self.task_pages.filter(status=1).count()*100/self.task_pages.count())
-        if (self.percent == 100):
-            self.status = TaskStatus.EXCEPT
         self.save()
+
+    def owned_by(self, user):
+        if self.creator == user:
+            return True
+        else:
+            return False
 
     @property
     def task_pages(self):
