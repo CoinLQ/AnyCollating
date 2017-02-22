@@ -9,19 +9,21 @@ from core.adminlte.models import Permission, Menu
 
 class ApiPermissionCheck(object):
     def process_request(self, request):
-        if not request.user.is_superuser and \
-                request.path_info.startswith('/api/'):
-            # todo: cache
-            permissions = Permission.objects.filter(
-                group__in=request.user.groups.all()
-            )
-            resources = []
-            for p in permissions:
-                resources.extend(p.resources.values_list('url', flat=True))
-            print(request.path_info)
-            if request.path_info not in resources:
-                return HttpResponse(status=403)
-        pass
+        return None
+        # TODO:
+        # if not request.user.is_superuser and \
+        #         request.path_info.startswith('/api/'):
+        #     # todo: cache
+        #     permissions = Permission.objects.filter(
+        #         group__in=request.user.groups.all()
+        #     )
+        #     resources = []
+        #     for p in permissions:
+        #         resources.extend(p.resources.values_list('url', flat=True))
+        #     print(request.path_info)
+        #     if request.path_info not in resources:
+        #         return HttpResponse(status=403)
+        # pass
 
 
 class MenuMiddleware(object):
